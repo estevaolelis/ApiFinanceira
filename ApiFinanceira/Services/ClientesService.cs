@@ -32,15 +32,44 @@ namespace ApiFinanceira.Services
         
         public async Task<List<clientes>> GetClientesAsync()
         {
-            var response = await _supabase.From<clientes>().Get();
+            var response = await _supabase.From<clientes>().Where(c => c.status == true).Get();
             
             return response.Models; 
         }
 
         public async Task<clientes> GetClientesByIdAsync(int id)
         {
-            var response = await _supabase.From<clientes>().Where(c => c.id == id).Get();
+            var response = await _supabase.From<clientes>().Where(c => c.id == id && c.status == true).Get();
             return response.Models.FirstOrDefault();
+        }
+
+        public async Task<clientes> PutClientesAsync(int id, string nome, string documento, string email)
+        {
+            var response = await _supabase.From<clientes>().Where(c => c.id == id)
+                .Set(c => c.nome, nome) 
+                .Set(c => c.documento, documento)
+                .Set(c => c.email, email)
+                .Update();;
+            
+            return response.Models.FirstOrDefault();
+        }
+
+        public async Task<bool> DeleteClientesAsync(int id)
+        {
+            var cliente = await _supabase
+                .From<clientes>()
+                .Where(c => c.id == id)
+                .Single();
+            
+            if (cliente == null) return false;
+            
+            await _supabase
+                .From<clientes>()
+                .Where(c => c.id == id)
+                .Set(c => c.status, false)
+                .Update();
+
+            return true;
         }
     }   
 }
